@@ -9,3 +9,9 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies += "com.typesafe" % "config" % "1.4.2"
+
+val akkaVersion = "2.6.18"
+libraryDependencies ++= Seq(
+  ("com.typesafe.akka" %% "akka-actor" % akkaVersion),
+  ("com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test)
+)
