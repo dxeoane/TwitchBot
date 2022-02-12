@@ -1,5 +1,4 @@
-import BotCommandHandler.BotCommand
-import IRCCommandWriter.{CapReq, Join, Nick, Pass, Pong}
+import Client._
 import akka.actor.{ActorRef, ActorSystem}
 
 import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
@@ -36,20 +35,12 @@ object App {
 
   def main(args: Array[String]): Unit = {
 
-    val PINGRegex = """^(PING)( .+)?$""".r
-
-    // badges, username, _, channel, messa
-    val PRIVMSGRegex =
-      """^(@\S+ )?:(\S+)!(\S+)? PRIVMSG #(\S+) :(.+)$""".r
-
     val socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream))
-    val ircCommandWriter: ActorRef = actorSystem.actorOf(IRCCommandWriter.props(socket))
-    val botCommandHandler: ActorRef = actorSystem.actorOf(BotCommandHandler.props(ircCommandWriter))
+    val client: ActorRef = actorSystem.actorOf(Client.props(socket))
 
-    Configuration.ircCapabilities.foreach(ircCommandWriter ! CapReq(_))
-    ircCommandWriter ! Pass(Configuration.ircToken)
-    ircCommandWriter ! Nick(Configuration.ircUsername)
-    ircCommandWriter ! Join(Configuration.ircChannel)
+    Configuration.ircCapabilities.foreach(capabilities => client ! SendCommand(CapReq(capabilities)))
+    client ! SendCommand(Pass(Configuration.ircToken))
+    client ! SendCommand(Nick(Configuration.ircUsername))
 
     try {
       Iterator
@@ -59,14 +50,7 @@ object App {
         .filter(_.nonEmpty)
         .foreach { line =>
           if (Configuration.debug) println(s"> $line")
-
-          line.trim match {
-            case PINGRegex(_*) =>
-              ircCommandWriter ! Pong
-            case PRIVMSGRegex(_, username, _, channel, message) if message.trim.startsWith("!") =>
-              botCommandHandler ! BotCommand(channel, username, message)
-            case _ =>
-          }
+          client ! Raw(line.trim)
         }
     } catch {
       case e: SocketException =>
