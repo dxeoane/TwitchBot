@@ -28,7 +28,6 @@ object App {
   Runtime.getRuntime.addShutdownHook(new Thread {
     override def run(): Unit = {
       actorSystem.terminate()
-      socket.close()
       println("Bye!")
     }
   })

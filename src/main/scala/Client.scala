@@ -1,4 +1,3 @@
-import App.actorSystem
 import CommandHandler.BotCommand
 import akka.actor.{Actor, ActorRef, Props}
 
@@ -39,7 +38,7 @@ class Client(val socket: Socket) extends Actor {
   import Client._
 
   private val writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream)))
-  private val commandHandler: ActorRef = actorSystem.actorOf(CommandHandler.props(self))
+  private val commandHandler: ActorRef = context.actorOf(CommandHandler.props(self))
 
   private val PINGRegex = """^(PING)( .+)?$""".r
   // badges, username, _, channel, messa
