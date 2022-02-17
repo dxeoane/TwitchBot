@@ -9,6 +9,8 @@ object Configuration {
   val debug: Boolean = conf.getBoolean("debug")
   val sslTrustAllCerts: Boolean = conf.getBoolean("ssl.trustAllCerts")
 
+  val ircAnonymous: Boolean = conf.getBoolean("twitch.irc.anonymous")
+  val ircReadOnly: Boolean = ircAnonymous
   val ircToken: String = conf.getString("twitch.irc.token")
   val ircUsername: String = conf.getString("twitch.irc.username")
   val ircChannel: String = conf.getString("twitch.irc.channel")

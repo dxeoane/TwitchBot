@@ -20,7 +20,6 @@ object Client {
   sealed trait Command
   case object Ping extends Command
   case object Pong extends Command
-  case class Color(channel: String, color: String) extends Command
   case class CapReq(capabilities: String) extends Command
   case class Pass(token: String) extends Command
   case class Nick(username: String) extends Command
@@ -100,16 +99,17 @@ class Client(val socket: Socket) extends Actor {
       case Say(channel, message) =>
         say(channel = channel, message = message)
 
-      case Color(channel, color) =>
-        say(channel = channel, message = s"/color $color")
-
       case Part(channel) =>
         write(s"PART #$channel")
     }
   }
 
   private def say(channel: String, message: String): Unit = {
-    write(s"PRIVMSG #$channel :$message")
+    if (!Configuration.ircReadOnly) {
+      write(s"PRIVMSG #$channel :$message")
+    } else {
+      if (Configuration.debug) println(s"The chat is read only. I can not send: $message")
+    }
   }
 
   private def write(message: String): Unit = {

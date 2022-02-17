@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.SocketException
+import scala.util.Random
 
 object App {
 
@@ -38,8 +39,12 @@ object App {
     val client: ActorRef = actorSystem.actorOf(Client.props(socket))
 
     Configuration.ircCapabilities.foreach(capabilities => client ! SendCommand(CapReq(capabilities)))
-    client ! SendCommand(Pass(Configuration.ircToken))
-    client ! SendCommand(Nick(Configuration.ircUsername))
+    if (Configuration.ircAnonymous) {
+      client ! SendCommand(Nick(s"justinfan${Random.nextInt(1000000)}"))
+    } else {
+      client ! SendCommand(Pass(Configuration.ircToken))
+      client ! SendCommand(Nick(Configuration.ircUsername))
+    }
 
     try {
       Iterator
